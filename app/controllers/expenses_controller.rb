@@ -1,18 +1,18 @@
 class ExpensesController < ApplicationController
   before_action :set_expense, only: %i[ show update destroy ]
 
-  # GET /expenses
+  #GET
   def index
     @expenses = Expense.all
     render json: @expenses
   end
 
-  # GET /expenses/1
+  #GET
   def show
     render json: @expense
   end
 
-  # POST /expenses
+  #POST
   def create
     @expense = Expense.new(expense_params)
 
@@ -23,7 +23,7 @@ class ExpensesController < ApplicationController
     end
   end
 
-  # PATCH/PUT /expenses/1
+  #PATCH/PUT
   def update
     if @expense.update(expense_params)
       render json: @expense
@@ -32,7 +32,7 @@ class ExpensesController < ApplicationController
     end
   end
 
-  # DELETE /expenses/1
+  # DELETE
   def destroy
     @expense.destroy!
     head :no_content
@@ -48,4 +48,19 @@ class ExpensesController < ApplicationController
     def expense_params
       params.require(:expense).permit(:title, :amount, :date, :category)
     end
+
+    def summary
+  totals = Expense.group(:category).sum(:amount)
+  grand_total = totals.values.sum
+
+  summary = totals.map do |category, amount|
+    {
+      category: category,
+      amount: amount.to_f,
+      percentage: grand_total > 0 ? ((amount / grand_total) * 100).round(1) : 0
+    }
+  end
+
+  render json: summary
+end
 end
